@@ -5,25 +5,38 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 #----------------------------------------------------------------------------#
-# Models.
+# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+# 
 #----------------------------------------------------------------------------#
-# insert into venues (name, city, state, address, phone, image_link, facebook_link) values ('The new venue', 'Lekki', 'LG', '14 church street Lekki', '08092400904', 'https://via.placeholder.com/150', 'https://www.facebook.com/ocranbillions');
-# insert into artists (name, city, state, phone, genres, image_link, facebook_link) values ('Smith & The Gang', 'Lekki', 'LG', '08172080572', 'ROCK, METAL, PUNK', 'https://via.placeholder.com/150', 'https://www.facebook.com/ocranbillions');
+
+class City(db.Model):
+    __tablename__ = 'cities'
+
+    id = db.Column(db.Integer, primary_key=True)
+    city_name = db.Column(db.String(120))
+    state = db.Column(db.String(120))
+    venues = db.relationship('Venue', backref=db.backref('city', lazy=True), collection_class=list) #lazy=joined
+
+    def __repr__(self):
+      return f'<City Id: {self.id} city_name: {self.city_name} state: {self.state}>'
 
 
 class Venue(db.Model):
     __tablename__ = 'venues'
 
     id = db.Column(db.Integer, primary_key=True)
+    city_id = db.Column(db.Integer, db.ForeignKey('cities.id'), nullable=False)
     name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
+    website = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    def __repr__(self):
+      return f'<Venue Id: {self.id} city_id: {self.city_id} name: {self.name} address: {self.address} phone: {self.phone} image_link: {self.image_link} facebook_link: {self.facebook_link}>'
+
+
 
 class Artist(db.Model):
     __tablename__ = 'artists'
@@ -33,11 +46,13 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
+    genres = db.Column(db.ARRAY(db.String))
     image_link = db.Column(db.String(500))
+    website = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-    def __repr__(self):
-      return f'<Artist Id: {self.id} Name: {self.name} City: {self.city} State: {self.state} phone: {self.phone} genres: {self.genres} image_link: {self.image_link} fb_link: {self.facebook_link}>'
+    seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
+    seeking_description = db.Column(db.String(500))
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+    def __repr__(self):
+      return f'<Artist Id: {self.id} Name: {self.name} City: {self.city} State: {self.state} phone: {self.phone} genres: {self.genres} image_link: {self.image_link} facebook_link: {self.facebook_link}>'
+
