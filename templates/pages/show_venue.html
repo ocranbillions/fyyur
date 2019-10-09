@@ -4,10 +4,11 @@
 <div class="row">
 	<div class="col-sm-6">
 		<h1 class="monospace">
-			{{ venue.name }}
+			{{ venue.name }} 
 		</h1>
 		<p class="subtitle">
 			ID: {{ venue.id }}
+			<input type="button" value="Delete Venue" data-venueid="{{ venue.id }}" id="deleteBtn" style="line-height: 1;" onclick="deleteVenue(event);"/>
 		</p>
 		<div class="genres">
 			{% for genre in venue.genres %}
