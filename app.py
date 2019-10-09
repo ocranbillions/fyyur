@@ -8,6 +8,7 @@ import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
+# from sqlalchemy import desc
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -179,8 +180,8 @@ def delete_venue(venue_id):
 @app.route('/artists')
 def artists():
   # TODO: replace with real data returned from querying the database
-  # (Assignment Completed)
 
+  # (DONE)
   data = []
   artists = Artist.query.all()
   # artists = Artist.query.filter().order_by(Artist.name)
@@ -213,8 +214,8 @@ def search_artists():
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
-  # (DONE)
 
+  # (DONE)
   artist = Artist.query.get(artist_id)
   shows = artist.shows
   past_shows = []
@@ -338,9 +339,10 @@ def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
+
+  # (DONE)
   data = []
-  # shows = Show.query.all()
-  shows = Show.query.filter(Show.start_time >= datetime.now())
+  shows = Show.query.order_by(Show.start_time).filter(Show.start_time >= datetime.now())
 
   for show in shows:
     data.append({
@@ -364,13 +366,38 @@ def create_shows():
 def create_show_submission():
   # called to create new shows in the db, upon submitting new show listing form
   # TODO: insert form data as a new Show record in the db, instead
-
-  # on successful db insert, flash success
-  flash('Show was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Show could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
-  return render_template('pages/home.html')
+
+  # (DONE)
+  artist_id = request.form['artist_id']
+  venue_id = request.form['venue_id']
+  start_time = request.form['start_time']
+
+  error = False
+  if artist_id == "" or venue_id == "" or start_time == "":
+    flash('Please fill all input boxes')
+    return render_template('forms/new_show.html', form=ShowForm())
+  else:
+    try:
+      show = Show(artist_id = artist_id, venue_id = venue_id, start_time = start_time)
+      db.session.add(show)
+      db.session.commit()
+      flash('Show was successfully listed!')
+    except:
+      error = True
+      db.session.rollback()
+      print(sys.exc_info())
+      flash('An error occurred. Please check that the IDs are valid')
+    finally:
+      db.session.close()
+      if error:
+        return render_template('forms/new_show.html', form=ShowForm())
+      else:
+        # return render_template('pages/home.html')
+        return redirect(url_for('shows'))
+
 
 @app.errorhandler(404)
 def not_found_error(error):
