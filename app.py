@@ -8,7 +8,6 @@ import babel
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
-# from sqlalchemy import desc
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -16,6 +15,9 @@ from forms import *
 from flask_migrate import Migrate
 from models import db, Venue, Artist, City, Show
 import sys
+
+from utils import *
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -260,21 +262,23 @@ def show_artist(artist_id):
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
+  artist = Artist.query.get(artist_id)
   form = ArtistForm()
   artist={
     "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
+    "name": artist.name,
+    "genres": artist.genres,
+    "city": artist.city,
+    "state": artist.state,
+    "phone": artist.phone,
+    "website": artist.website,
+    "facebook_link": artist.facebook_link,
+    "seeking_venue": artist.seeking_venue,
+    "seeking_description": artist.seeking_description,
+    "image_link": artist.image_link
   }
   # TODO: populate form with fields from artist with ID <artist_id>
+  # (DONE)
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
@@ -321,15 +325,54 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
   # called upon submitting the new artist listing form
-  # TODO: insert form data as a new Venue record in the db, instead
+  # TODO: insert form data as a new Artist record in the db, instead
   # TODO: modify data to be the data object returned from db insertion
-
-  # on successful db insert, flash success
-  flash('Artist ' + request.form['name'] + ' was successfully listed!')
+    # on successful db insert, flash success
+  # flash('Artist ' + request.form['name'] + ' was successfully listed!')
   # TODO: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Artist ' + data.name + ' could not be listed.')
-  return render_template('pages/home.html')
 
+  # (DONE)
+  artist = {}
+  artist['name'] = request.form['name']
+  artist['city'] = request.form['city']
+  artist['state'] = request.form['state']
+  artist['phone'] = request.form['phone']
+  artist['genres'] = request.form.getlist('genres')
+  artist['facebook_link'] = request.form['facebook_link']
+  artist['image_link'] = request.form['image_link']
+
+  
+  if validate_new_artist(artist) == False:
+    flash('Please fill all input')
+    return render_template('forms/new_artist.html', form=ArtistForm())
+  else:
+    error = False
+    try:
+      show = Artist(
+        name=artist['name'],
+        city=artist['city'],
+        state=artist['state'],
+        phone=artist['phone'],
+        genres=artist['genres'],
+        facebook_link=artist['facebook_link'],
+        image_link=artist['image_link']
+      )
+      db.session.add(show)
+      db.session.commit()
+      flash('Artist ' + artist['name'] + ' was successfully listed!')
+    except:
+      error = True
+      db.session.rollback()
+      print(sys.exc_info())
+      flash('An error occurred. Artist could not be listed. Please check that your inputs are valid')
+    finally:
+      db.session.close()
+      if error:
+        return render_template('forms/new_artist.html', form=ArtistForm())
+      else:
+        # return render_template('pages/home.html')
+        return redirect(url_for('artists'))
 
 #  Shows
 #  ----------------------------------------------------------------
@@ -381,7 +424,11 @@ def create_show_submission():
     return render_template('forms/new_show.html', form=ShowForm())
   else:
     try:
-      show = Show(artist_id = artist_id, venue_id = venue_id, start_time = start_time)
+      show = Show(
+        artist_id=artist_id,
+        venue_id=venue_id,
+        start_time=start_time
+      )
       db.session.add(show)
       db.session.commit()
       flash('Show was successfully listed!')
