@@ -365,11 +365,7 @@ def edit_venue_submission(venue_id):
       venue_to_update = Venue.query.get(venue_id)
 
       venue_to_update.name = venue['name']
-<<<<<<< HEAD
-      venue_to_update.name = venue['address']
-=======
       venue_to_update.address = venue['address']
->>>>>>> create venue
       venue_to_update.phone = venue['phone']
       venue_to_update.genres = venue['genres']
       venue_to_update.facebook_link = venue['facebook_link']
