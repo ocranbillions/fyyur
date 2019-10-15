@@ -1,25 +1,33 @@
 from flask_sqlalchemy import SQLAlchemy
-# from sqlalchemy.ext.hybrid import hybrid_property
-# import datetime
 
 db = SQLAlchemy()
-
-#----------------------------------------------------------------------------#
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
-# (DONE)
-#----------------------------------------------------------------------------#
 
 class City(db.Model):
     __tablename__ = 'cities'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
     city_name = db.Column(db.String(120))
     state = db.Column(db.String(120))
     venues = db.relationship('Venue', backref=db.backref('city', lazy=True), collection_class=list) #lazy=joined
 
-    def __repr__(self):
-      return f'<City Id: {self.id} city_name: {self.city_name} state: {self.state}>'
+    def add_venue(self, venue):
+      v = Venue(
+          name=venue['name'],
+          address=venue['address'],
+          phone=venue['phone'],
+          genres=venue['genres'],
+          facebook_link=venue['facebook_link'],
+          image_link=venue['image_link'],
+          city_id=self.id
+        )
 
+      db.session.add(v)
+
+    def print_info(self):
+      print(f"Id: {self.id}")
+      print(f"City_name: {self.city_name}")
+      print(f"State: {self.state}")
+    
 
 class Venue(db.Model):
     __tablename__ = 'venues'
@@ -37,9 +45,18 @@ class Venue(db.Model):
     seeking_description = db.Column(db.String(500))
     shows = db.relationship('Show', backref=db.backref('venue', lazy=True), collection_class=list) 
 
-    def __repr__(self):
-      return f'<Venue Id: {self.id} city_id: {self.city_id} name: {self.name} address: {self.address} phone: {self.phone} image_link: {self.image_link} facebook_link: {self.facebook_link}>'
-
+    def print_info(self):
+      print(f"Id: {self.id}")
+      print(f"city_id: {self.city_id}")
+      print(f"name: {self.name}")
+      print(f"address: {self.address}")
+      print(f"phone: {self.phone}")
+      print(f"genres: {self.genres}")
+      print(f"image_link: {self.image_link}")
+      print(f"website: {self.website}")
+      print(f"facebook_link: {self.facebook_link}")
+      print(f"seeking_talent: {self.seeking_talent}")
+      print(f"seeking_description: {self.seeking_description}")
 
 class Artist(db.Model):
     __tablename__ = 'artists'
@@ -55,10 +72,20 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description = db.Column(db.String(500))
-    shows = db.relationship('Show', backref=db.backref('artist', lazy=True), collection_class=list) 
+    shows = db.relationship('Show', backref=db.backref('artist', lazy=True), collection_class=list)
 
-    def __repr__(self):
-      return f'<Artist Id: {self.id} Name: {self.name} City: {self.city} State: {self.state} phone: {self.phone} genres: {self.genres} image_link: {self.image_link} facebook_link: {self.facebook_link}>'
+    def print_info(self):
+      print(f"Id: {self.id}")
+      print(f"name: {self.name}")
+      print(f"city: {self.city}")
+      print(f"state: {self.state}")
+      print(f"phone: {self.phone}")
+      print(f"genres: {self.genres}")
+      print(f"image_link: {self.image_link}")
+      print(f"website: {self.website}")
+      print(f"facebook_link: {self.facebook_link}")
+      print(f"seeking_venue: {self.seeking_venue}")
+      print(f"seeking_description: {self.seeking_description}")
 
 
 class Show(db.Model):
@@ -69,5 +96,8 @@ class Show(db.Model):
     venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'), nullable=False)
     start_time = db.Column(db.DateTime())
 
-    def __repr__(self):
-      return f'<Show Id: {self.id} artist_id: {self.artist_id} venue_id: {self.venue_id} start_time: {self.start_time}>'
+    def print_info(self):
+      print(f"Id: {self.id}")
+      print(f"artist_id: {self.artist_id}")
+      print(f"venue_id: {self.venue_id}")
+      print(f"start_time: {self.start_time}")
