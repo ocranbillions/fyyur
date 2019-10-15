@@ -444,7 +444,6 @@ def shows():
   shows = Show.query.order_by(Show.start_time).filter(Show.start_time >= datetime.now())
 
   for show in shows:
-    show.print_info()
     data.append({
       "venue_id": show.venue_id,
       "venue_name": show.venue.name,
