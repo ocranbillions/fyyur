@@ -164,7 +164,10 @@ def create_venue_submission():
             city_name=venue['city']
           )
         db.session.add(city)
-        db.session.flush() # flush() changes to the database and thus have your primary-key field (city_id) updated to use as foreign key in .add_venue
+        db.session.flush() 
+        # A flush takes pending changes, and translates them into commands ready to be committed. 
+        # City.add_venue(venue) relies on a foreign key from the above added city object from the translated command to work
+        # A flush occurs flush() when you call Query. Or on db.session.commit()
 
       city.add_venue(venue)
       db.session.commit()
